@@ -73,8 +73,7 @@
     function sendMedicineNotification(name, dose) {
       if (Notification.permission === "granted") {
         new Notification("⏰ Medicine Reminder", {
-          body: `Time to take ${dose} of ${name}`,
-          icon: "https://cdn-icons-png.flaticon.com/512/2965/2965567.png"
+          body: `Time to take ${dose} of ${name}`
         });
       }
     }
