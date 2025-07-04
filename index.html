@@ -1,0 +1,133 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MedMinder – Medicine Reminder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f6fdf9;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .medicine-card {
+      background-color: #e8f5e9;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>  <h1>💊 MedMinder</h1>  <form id="medicine-form">
+    <input type="text" id="medicine-name" placeholder="Medicine Name" required />
+    <input type="text" id="medicine-dose" placeholder="Dose (e.g. 1 tablet)" required />
+    <input type="time" id="medicine-time" required />
+    <button type="submit">Add Medicine</button>
+  </form>  <div id="medicine-list"></div>  <script>
+    const form = document.getElementById("medicine-form");
+    const medicineList = document.getElementById("medicine-list");
+
+    // Request Notification Permission
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+
+    // Save medicine to localStorage
+    function saveMedicines(medicines) {
+      localStorage.setItem("medicines", JSON.stringify(medicines));
+    }
+
+    // Load from localStorage
+    function loadMedicines() {
+      return JSON.parse(localStorage.getItem("medicines") || "[]");
+    }
+
+    // Show notification
+    function sendMedicineNotification(name, dose) {
+      if (Notification.permission === "granted") {
+        new Notification("⏰ Medicine Reminder", {
+          body: `Time to take ${dose} of ${name}`,
+          icon: "https://cdn-icons-png.flaticon.com/512/2965/2965567.png"
+        });
+      }
+    }
+
+    // Schedule reminder
+    function scheduleReminder(name, dose, timeStr) {
+      const now = new Date();
+      const [h, m] = timeStr.split(":".map(Number);
+      const reminderTime = new Date();
+      reminderTime.setHours(h);
+      reminderTime.setMinutes(m);
+      reminderTime.setSeconds(0);
+
+      let delay = reminderTime.getTime() - now.getTime();
+      if (delay < 0) delay += 24 * 60 * 60 * 1000; // Next day if time passed
+
+      setTimeout(() => {
+        sendMedicineNotification(name, dose);
+      }, delay);
+    }
+
+    // Render medicine list
+    function renderMedicines() {
+      const medicines = loadMedicines();
+      medicineList.innerHTML = "";
+      medicines.forEach((med, index) => {
+        const div = document.createElement("div");
+        div.className = "medicine-card";
+        div.innerHTML = `
+          <strong>${med.name}</strong><br/>
+          Dose: ${med.dose}<br/>
+          Time: ${med.time}
+        `;
+        medicineList.appendChild(div);
+        scheduleReminder(med.name, med.dose, med.time);
+      });
+    }
+
+    // Handle form submit
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("medicine-name").value;
+      const dose = document.getElementById("medicine-dose").value;
+      const time = document.getElementById("medicine-time").value;
+
+      const newMed = { name, dose, time };
+      const medicines = loadMedicines();
+      medicines.push(newMed);
+      saveMedicines(medicines);
+      renderMedicines();
+      form.reset();
+    });
+
+    renderMedicines();
+  </script></body>
+</html>
